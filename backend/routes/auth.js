@@ -4,6 +4,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const JWT_SECRET = "punit";
 const jwt = require("jsonwebtoken");
+const fetchuser = require("../middleware/fetchuser");
 const { body, validationResult } = require("express-validator");
 
 // Create a user using POST "/api/auth/createUser" does not require authentication
@@ -34,7 +35,7 @@ router.post(
         user = await User.create({
           name: req.body.name,
           email: req.body.email,
-          password: secPass,
+          password: secPass,  
         });
 
         const data = {
@@ -43,9 +44,7 @@ router.post(
           },
         };
 
-        // console.log(user);
         const authtoken = jwt.sign(data, JWT_SECRET);
-        // console.log({authtoken});
 
         res.json({ authtoken, user });
       }
@@ -98,12 +97,23 @@ router.post(
       const authtoken = jwt.sign(data, JWT_SECRET);
       // console.log({authtoken});
 
-      res.json({ authtoken, user });
-
+      res.json({ authtoken });
     } catch (err) {
-      res.status(400).json({ err: err.name })
+      res.status(400).json({ err: err.name });
     }
   }
 );
+
+// Route 3: get ligin use details endPoint: "/getUser"
+
+router.post("/getUser", fetchuser, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await User.findById(userId).select("-password");
+    res.send(user)
+  } catch (err) {
+    res.status(500).send({ err: err.name });
+  }
+});
 
 module.exports = router;

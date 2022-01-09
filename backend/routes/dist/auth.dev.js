@@ -12,6 +12,8 @@ var JWT_SECRET = "punit";
 
 var jwt = require("jsonwebtoken");
 
+var fetchuser = require("../middleware/fetchuser");
+
 var _require = require("express-validator"),
     body = _require.body,
     validationResult = _require.validationResult; // Create a user using POST "/api/auth/createUser" does not require authentication
@@ -83,10 +85,8 @@ router.post("/createUser", [body("name", "Your name atleast be of 5 characters")
             user: {
               id: user.id
             }
-          }; // console.log(user);
-
-          authtoken = jwt.sign(data, JWT_SECRET); // console.log({authtoken});
-
+          };
+          authtoken = jwt.sign(data, JWT_SECRET);
           res.json({
             authtoken: authtoken,
             user: user
@@ -175,8 +175,7 @@ router.post("/login", [body("email", "Enter a valid email").isEmail(), body("pas
           authtoken = jwt.sign(data, JWT_SECRET); // console.log({authtoken});
 
           res.json({
-            authtoken: authtoken,
-            user: user
+            authtoken: authtoken
           });
           _context2.next = 23;
           break;
@@ -194,5 +193,39 @@ router.post("/login", [body("email", "Enter a valid email").isEmail(), body("pas
       }
     }
   }, null, null, [[4, 20]]);
+}); // Route 3: get ligin use details endPoint: "/getUser"
+
+router.post("/getUser", fetchuser, function _callee3(req, res) {
+  var userId, user;
+  return regeneratorRuntime.async(function _callee3$(_context3) {
+    while (1) {
+      switch (_context3.prev = _context3.next) {
+        case 0:
+          _context3.prev = 0;
+          userId = req.user.id;
+          _context3.next = 4;
+          return regeneratorRuntime.awrap(User.findById({
+            userId: userId
+          }).select("-password"));
+
+        case 4:
+          user = _context3.sent;
+          res.send(user);
+          _context3.next = 11;
+          break;
+
+        case 8:
+          _context3.prev = 8;
+          _context3.t0 = _context3["catch"](0);
+          res.status(500).send({
+            err: _context3.t0.name
+          });
+
+        case 11:
+        case "end":
+          return _context3.stop();
+      }
+    }
+  }, null, null, [[0, 8]]);
 });
 module.exports = router;
